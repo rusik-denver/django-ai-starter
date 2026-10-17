@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-ai-starter"
+version = "0.1.0"
+description = "Django starter template with dual-mode LLM integration (Ollama + Claude API)"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Ruslan Danelian", email = "rusik.denver@gmail.com"}]
+keywords = ["django", "ai", "llm", "ollama", "claude", "mcp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "django>=5.1",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+claude = ["anthropic>=0.39"]
+dev = ["ruff", "pytest", "pytest-django"]
+
+[project.urls]
+Homepage = "https://github.com/ruslandanelian/django-ai-starter"
+Repository = "https://github.com/ruslandanelian/django-ai-starter"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = "tests.py test_*.py"

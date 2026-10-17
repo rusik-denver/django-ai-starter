@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>django-ai-starter — Demo</title>
+<style>
+  :root { --bg: #f8fafc; --card: #fff; --text: #1e293b; --muted: #64748b; --accent: #6366f1; --border: #e2e8f0; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8; --accent: #818cf8; --border: #334155; }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 2rem; max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+  .sub { color: var(--muted); font-size: .875rem; margin-bottom: 2rem; }
+  form { display: grid; gap: .75rem; margin-bottom: 2rem; }
+  label { font-size: .8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  input, textarea { padding: .6rem .75rem; border: 1px solid var(--border); border-radius: .375rem; background: var(--card); color: var(--text); font-size: .95rem; }
+  textarea { min-height: 80px; resize: vertical; }
+  button { padding: .65rem 1.5rem; background: var(--accent); color: #fff; border: none; border-radius: .375rem; font-weight: 600; cursor: pointer; font-size: .95rem; }
+  button:disabled { opacity: .5; cursor: wait; }
+  #result { padding: 1rem; border-radius: .5rem; background: var(--card); border: 1px solid var(--border); display: none; margin-bottom: 2rem; }
+  #result h3 { font-size: 1rem; margin-bottom: .5rem; }
+  .score { font-size: 2rem; font-weight: 700; color: var(--accent); }
+  .badge { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .75rem; font-weight: 700; text-transform: uppercase; }
+  .badge.hot { background: #dc262620; color: #dc2626; }
+  .badge.warm { background: #f59e0b20; color: #f59e0b; }
+  .badge.cold { background: #3b82f620; color: #3b82f6; }
+  .leads { margin-top: 2rem; }
+  .leads h2 { font-size: 1.1rem; margin-bottom: .75rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<h1>AI Lead Scorer</h1>
+<p class="sub">Submit a lead and get an instant AI-powered score via Ollama or Claude API.</p>
+
+<form id="leadForm">
+  <div>
+    <label for="name">Name</label>
+    <input type="text" id="name" placeholder="Jane Smith" required>
+  </div>
+  <div>
+    <label for="industry">Industry</label>
+    <input type="text" id="industry" placeholder="E-commerce">
+  </div>
+  <div>
+    <label for="message">Message</label>
+    <textarea id="message" placeholder="We need an AI integration for our Django app..." required></textarea>
+  </div>
+  <button type="submit" id="btn">Score Lead</button>
+</form>
+
+<div id="result">
+  <h3>AI Score</h3>
+  <span class="score" id="scoreVal"></span>
+  <span class="badge" id="labelVal"></span>
+  <p id="reasonVal" style="margin-top:.5rem; color: var(--muted);"></p>
+</div>
+
+{% if leads %}
+<div class="leads">
+  <h2>Recent Leads</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Industry</th><th>Score</th><th>Label</th></tr></thead>
+    <tbody>
+    {% for lead in leads %}
+    <tr>
+      <td>{{ lead.name }}</td>
+      <td>{{ lead.industry }}</td>
+      <td>{{ lead.ai_score|default:"—" }}</td>
+      <td>{% if lead.ai_label %}<span class="badge {{ lead.ai_label }}">{{ lead.ai_label }}</span>{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script>
+document.getElementById('leadForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  btn.textContent = 'Scoring...';
+
+  const res = await fetch('/api/submit/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      name: document.getElementById('name').value,
+      industry: document.getElementById('industry').value,
+      message: document.getElementById('message').value,
+    })
+  });
+  const data = await res.json();
+  btn.disabled = false;
+  btn.textContent = 'Score Lead';
+
+  document.getElementById('scoreVal').textContent = data.score + '/10';
+  const lbl = document.getElementById('labelVal');
+  lbl.textContent = data.label;
+  lbl.className = 'badge ' + data.label;
+  document.getElementById('reasonVal').textContent = data.reason;
+  document.getElementById('result').style.display = 'block';
+});
+</script>
+</body>
+</html>
